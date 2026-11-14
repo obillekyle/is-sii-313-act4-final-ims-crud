@@ -7,19 +7,8 @@ namespace Obille_Try.Pages {
   public partial class DashboardPage : UI.Page {
     public DashboardPage() {
       InitializeComponent();
-
-      // Stock value and low stock come from the materials, so they agree
-      // with the list the low stock tile opens.
-      var byWeek = SampleData.StockValueByWeek();
-      var now = byWeek[^1];
-      stockValueTile.Value = $"₱{now / 1_000_000:0.00}M";
-      stockValueTile.Trend = byWeek;
-      stockValueTile.Change = Math.Round((now - byWeek[^2]) / byWeek[^2] * 100, 1);
-
-      var low = SampleData.Materials.Count(m => m.IsLow);
-      lowStockTile.Value = low.ToString();
-      lowStockTile.Change = low - SampleData.LowStockLastWeek;
       lowStockTile.Click += (_, _) => LowStockOpened?.Invoke(this, EventArgs.Empty);
+      ShowStock(Designing ? SampleData.Materials : ReadMaterials());
 
       toolsTile.Value = SampleData.ToolsOverdue.ToString();
       toolsTile.Change = SampleData.ToolsOverdue - SampleData.ToolsOverdueLastWeek;
@@ -34,5 +23,30 @@ namespace Obille_Try.Pages {
 
     // The low stock figure opens the materials list.
     public event EventHandler? LowStockOpened;
+
+    // Reads the Materials table again after a change.
+    public void Reload() => ShowStock(ReadMaterials());
+
+    static IReadOnlyList<MaterialRow> ReadMaterials() {
+      try {
+        return Inventory.All();
+      } catch (Exception ex) when (Data.Database.Failed(ex)) {
+        return Array.Empty<MaterialRow>();
+      }
+    }
+
+    // Stock value and low stock come from the table, so they agree with
+    // the list the low stock tile opens.
+    void ShowStock(IReadOnlyList<MaterialRow> materials) {
+      var byWeek = SampleData.StockValueByWeek(materials);
+      var now = byWeek[^1];
+      stockValueTile.Value = $"₱{now / 1_000_000:0.00}M";
+      stockValueTile.Trend = byWeek;
+      stockValueTile.Change = byWeek[^2] == 0 ? 0 : Math.Round((now - byWeek[^2]) / byWeek[^2] * 100, 1);
+
+      var low = materials.Count(m => m.IsLow);
+      lowStockTile.Value = low.ToString();
+      lowStockTile.Change = low - SampleData.LowStockLastWeek;
+    }
   }
 }

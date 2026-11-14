@@ -14,7 +14,7 @@ namespace Obille_Try.Dialogs {
       if (rows.Count == 1) {
         var r = rows[0];
         subjectLabel.Text = $"{r.Name} ({r.Code})";
-        Description = $"Its {r.Quantity(r.Stock)} in stock come off the count. This can't be undone.";
+        Description = $"The material and its {r.Quantity(r.Stock)} in stock leave the inventory. Undo in the message that follows brings them back.";
       } else {
         Title = $"Delete {rows.Count} materials?";
         deleteButton.Text = $"Delete {rows.Count}";
@@ -23,7 +23,7 @@ namespace Obille_Try.Dialogs {
         var shown = rows.Take(3).Select(r => $"{r.Name} ({r.Code})").ToList();
         if (rows.Count > 3) shown.Add($"and {rows.Count - 3} more");
         subjectLabel.Text = string.Join(Environment.NewLine, shown);
-        Description = "Their stock comes off the count. This can't be undone.";
+        Description = "The materials and their stock leave the inventory. Undo in the message that follows brings them back.";
       }
 
       // The list beside the picture is as tall as its lines, and never

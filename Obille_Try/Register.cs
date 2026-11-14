@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Data.OleDb;
 using System.Text.RegularExpressions;
 using Kit;
 using Obille_Try.Data;
@@ -58,7 +57,7 @@ namespace Obille_Try {
       Cursor = Cursors.WaitCursor;
       try {
         saved = Accounts.Register(fullName, username, password);
-      } catch (Exception ex) when (ex is OleDbException or InvalidOperationException) {
+      } catch (Exception ex) when (Data.Database.Failed(ex)) {
         problem.Title = "The accounts database did not open";
         problem.Text = ex.Message;
         problem.Visible = true;

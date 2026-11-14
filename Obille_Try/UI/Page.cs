@@ -14,6 +14,11 @@ namespace Obille_Try.UI {
     [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public override Color BackColor { get => base.BackColor; set => base.BackColor = value; }
 
+    // True inside Visual Studio's designer, where a page shows sample rows
+    // and never opens the database. DesignMode is still false while the
+    // constructor runs; the license context is set by then.
+    protected static bool Designing => LicenseManager.UsageMode == LicenseUsageMode.Designtime;
+
     void OnThemeChanged(object? sender, EventArgs e) {
       if (!IsDisposed) base.BackColor = KitTheme.Palette.BgSubtle;
     }

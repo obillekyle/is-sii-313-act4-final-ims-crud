@@ -69,7 +69,7 @@ namespace Obille_Try.UI {
         var i = Rows.Add();
         var row = Rows[i];
         row.Tag = r;
-        row.Cells[IndexOf("Material")].Value = $"{r.Name}, {r.Code}, {r.Bin}";
+        row.Cells[IndexOf("Material")].Value = $"{r.Name}, {r.Place}";
         row.Cells[IndexOf("Stock")].Value = r.Quantity(r.Stock);
         row.Cells[IndexOf("Cost")].Value = $"₱{r.Cost:N2} per {r.Unit}";
       }
@@ -178,7 +178,7 @@ namespace Obille_Try.UI {
       switch (name) {
         case "Material":
           Painter.Text(g, r.Name, main, new Rectangle(inner.X, top2, inner.Width, h1), P.Ink);
-          Painter.Text(g, $"{r.Code}, {r.Bin}", sub, new Rectangle(inner.X, top2 + h1 + S(2), inner.Width, h2), P.Ink2);
+          Painter.Text(g, r.Place, sub, new Rectangle(inner.X, top2 + h1 + S(2), inner.Width, h2), P.Ink2);
           break;
         case "Stock":
           Painter.Text(g, r.Quantity(r.Stock), main, new Rectangle(inner.X, r.IsLow ? top2 : top1, inner.Width, h1), P.Ink, TextFormatFlags.Right);

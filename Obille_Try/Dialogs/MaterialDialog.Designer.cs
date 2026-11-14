@@ -42,6 +42,8 @@ namespace Obille_Try.Dialogs
             unitBox = new Kit.Select();
             costField = new Kit.Field();
             costBox = new Kit.TextInput();
+            stockField = new Kit.Field();
+            stockBox = new Kit.NumberInput();
             reorderPointField = new Kit.Field();
             reorderPointBox = new Kit.NumberInput();
             reorderQuantityField = new Kit.Field();
@@ -57,6 +59,7 @@ namespace Obille_Try.Dialogs
             categoryField.SuspendLayout();
             unitField.SuspendLayout();
             costField.SuspendLayout();
+            stockField.SuspendLayout();
             reorderPointField.SuspendLayout();
             reorderQuantityField.SuspendLayout();
             supplierField.SuspendLayout();
@@ -75,13 +78,13 @@ namespace Obille_Try.Dialogs
             // addButton
             //
             addButton.AutoSize = true;
-            addButton.DialogResult = DialogResult.OK;
             addButton.Location = new Point(408, 12);
             addButton.Name = "addButton";
             addButton.Size = new Size(120, 32);
             addButton.TabIndex = 0;
             addButton.Text = "Add material";
             addButton.Variant = Kit.ButtonVariant.Primary;
+            addButton.Click += addButton_Click;
             //
             // cancelButton
             //
@@ -104,14 +107,16 @@ namespace Obille_Try.Dialogs
             fields.Controls.Add(categoryField, 1, 1);
             fields.Controls.Add(unitField, 0, 2);
             fields.Controls.Add(costField, 1, 2);
-            fields.Controls.Add(reorderPointField, 0, 3);
-            fields.Controls.Add(reorderQuantityField, 1, 3);
-            fields.Controls.Add(supplierField, 0, 4);
-            fields.Controls.Add(binField, 1, 4);
+            fields.Controls.Add(stockField, 0, 3);
+            fields.Controls.Add(reorderPointField, 1, 3);
+            fields.Controls.Add(reorderQuantityField, 0, 4);
+            fields.Controls.Add(supplierField, 1, 4);
+            fields.Controls.Add(binField, 0, 5);
             fields.Dock = DockStyle.Top;
             fields.Location = new Point(20, 56);
             fields.Name = "fields";
-            fields.RowCount = 5;
+            fields.RowCount = 6;
+            fields.RowStyles.Add(new RowStyle());
             fields.RowStyles.Add(new RowStyle());
             fields.RowStyles.Add(new RowStyle());
             fields.RowStyles.Add(new RowStyle());
@@ -157,8 +162,8 @@ namespace Obille_Try.Dialogs
             codeBox.Mono = true;
             codeBox.Name = "codeBox";
             codeBox.Size = new Size(256, 32);
+            codeBox.Placeholder = "STL-0302";
             codeBox.TabIndex = 0;
-            codeBox.Text = "STL-0302";
             //
             // categoryField
             //
@@ -217,17 +222,36 @@ namespace Obille_Try.Dialogs
             costBox.Size = new Size(256, 32);
             costBox.TabIndex = 0;
             //
+            // stockField
+            //
+            stockField.Controls.Add(stockBox);
+            stockField.Dock = DockStyle.Fill;
+            stockField.Label = "Stock on hand";
+            stockField.Location = new Point(0, 228);
+            stockField.Margin = new Padding(0, 0, 8, 12);
+            stockField.Name = "stockField";
+            stockField.Size = new Size(256, 64);
+            stockField.TabIndex = 5;
+            //
+            // stockBox
+            //
+            stockBox.Location = new Point(0, 26);
+            stockBox.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
+            stockBox.Name = "stockBox";
+            stockBox.Size = new Size(256, 32);
+            stockBox.TabIndex = 0;
+            //
             // reorderPointField
             //
             reorderPointField.Controls.Add(reorderPointBox);
             reorderPointField.Dock = DockStyle.Fill;
             reorderPointField.Hint = "The stock at which the material shows as low.";
             reorderPointField.Label = "Reorder point";
-            reorderPointField.Location = new Point(0, 228);
-            reorderPointField.Margin = new Padding(0, 0, 8, 12);
+            reorderPointField.Location = new Point(272, 228);
+            reorderPointField.Margin = new Padding(8, 0, 0, 12);
             reorderPointField.Name = "reorderPointField";
             reorderPointField.Size = new Size(256, 64);
-            reorderPointField.TabIndex = 5;
+            reorderPointField.TabIndex = 6;
             //
             // reorderPointBox
             //
@@ -243,11 +267,11 @@ namespace Obille_Try.Dialogs
             reorderQuantityField.Dock = DockStyle.Fill;
             reorderQuantityField.Hint = "How many to order when stock reaches the reorder point.";
             reorderQuantityField.Label = "Reorder quantity";
-            reorderQuantityField.Location = new Point(272, 228);
-            reorderQuantityField.Margin = new Padding(8, 0, 0, 12);
+            reorderQuantityField.Location = new Point(0, 304);
+            reorderQuantityField.Margin = new Padding(0, 0, 8, 12);
             reorderQuantityField.Name = "reorderQuantityField";
             reorderQuantityField.Size = new Size(256, 64);
-            reorderQuantityField.TabIndex = 6;
+            reorderQuantityField.TabIndex = 7;
             //
             // reorderQuantityBox
             //
@@ -262,12 +286,12 @@ namespace Obille_Try.Dialogs
             supplierField.Controls.Add(supplierBox);
             supplierField.Dock = DockStyle.Fill;
             supplierField.Label = "Supplier";
-            supplierField.Location = new Point(0, 304);
-            supplierField.Margin = new Padding(0, 0, 8, 0);
+            supplierField.Location = new Point(272, 304);
+            supplierField.Margin = new Padding(8, 0, 0, 12);
             supplierField.Name = "supplierField";
             supplierField.Optional = true;
             supplierField.Size = new Size(256, 64);
-            supplierField.TabIndex = 7;
+            supplierField.TabIndex = 8;
             //
             // supplierBox
             //
@@ -282,12 +306,12 @@ namespace Obille_Try.Dialogs
             binField.Controls.Add(binBox);
             binField.Dock = DockStyle.Fill;
             binField.Label = "Storage bin";
-            binField.Location = new Point(272, 304);
-            binField.Margin = new Padding(8, 0, 0, 0);
+            binField.Location = new Point(0, 380);
+            binField.Margin = new Padding(0, 0, 8, 0);
             binField.Name = "binField";
             binField.Optional = true;
             binField.Size = new Size(256, 64);
-            binField.TabIndex = 8;
+            binField.TabIndex = 9;
             //
             // binBox
             //
@@ -317,6 +341,7 @@ namespace Obille_Try.Dialogs
             categoryField.ResumeLayout(false);
             unitField.ResumeLayout(false);
             costField.ResumeLayout(false);
+            stockField.ResumeLayout(false);
             reorderPointField.ResumeLayout(false);
             reorderQuantityField.ResumeLayout(false);
             supplierField.ResumeLayout(false);
@@ -341,6 +366,8 @@ namespace Obille_Try.Dialogs
         private Kit.Select unitBox;
         private Kit.Field costField;
         private Kit.TextInput costBox;
+        private Kit.Field stockField;
+        private Kit.NumberInput stockBox;
         private Kit.Field reorderPointField;
         private Kit.NumberInput reorderPointBox;
         private Kit.Field reorderQuantityField;

@@ -4,12 +4,14 @@ using Obille_Try.Data;
 using Obille_Try.Dialogs;
 
 namespace Obille_Try.Pages {
-  // The materials list, 25 to a page by default. A prototype: the filters,
-  // the search, the sort and the pages work on the sample rows; adding and
-  // editing open their dialogs and report with a toast; a delete takes the
-  // rows off the list until the app closes. Nothing is saved.
+  // The materials list, 25 to a page by default, read from the Materials
+  // table. The filters, the search, the sort and the pages work on the rows
+  // read; New material and Edit material save through their dialog, and a
+  // delete takes the rows out of the table, with Undo on its toast putting
+  // them back under their own IDs.
   public partial class MaterialsPage : UI.Page {
-    readonly List<MaterialRow> rows = SampleData.Materials.ToList();
+    // The designer shows the sample rows; the table is read at run time.
+    List<MaterialRow> rows = Designing ? SampleData.Materials.ToList() : new();
     readonly ContextMenuStrip rowMenu = new();
     MaterialRow? menuRow;
 
@@ -60,6 +62,19 @@ namespace Obille_Try.Pages {
       pagination.PageChanged += (_, _) => Refill();
       pagination.PageSizeChanged += (_, _) => Refill(toFirstPage: true);
 
+      if (Designing) Refill();
+      else Reload();
+    }
+
+    // Reads the table again; the list keeps its filters, sort and page.
+    public void Reload() {
+      try {
+        rows = Inventory.All();
+        materialGrid.EmptyText = "No materials match these filters.";
+      } catch (Exception ex) when (Data.Database.Failed(ex)) {
+        rows = new();
+        materialGrid.EmptyText = $"The inventory database did not open. {ex.Message}";
+      }
       Refill();
     }
 
@@ -91,31 +106,44 @@ namespace Obille_Try.Pages {
     public void OpenNew() {
       var dialog = MaterialDialog;
       dialog.Clear();
-      if (FindForm() is not { } owner || dialog.ShowOver(owner) != DialogResult.OK) return;
-      toaster.Show($"{dialog.MaterialName} added", Tone.Success);
+      if (FindForm() is not { } owner || dialog.ShowOver(owner) != DialogResult.OK || dialog.Saved is not { } saved) return;
+      Reload();
+      toaster.Show($"Added {saved.Name}", Tone.Success, "Undo", () => {
+        if (TrySave(() => Inventory.Delete(new[] { saved }))) Reload();
+      });
     }
 
     void OpenEdit(MaterialRow row) {
       var dialog = MaterialDialog;
       dialog.Clear();
       dialog.LoadRow(row);
-      if (FindForm() is not { } owner || dialog.ShowOver(owner) != DialogResult.OK) return;
-      toaster.Show($"{dialog.MaterialName} saved", Tone.Success);
+      if (FindForm() is not { } owner || dialog.ShowOver(owner) != DialogResult.OK || dialog.Saved is not { } saved) return;
+      Reload();
+      toaster.Show($"Saved {saved.Name}", Tone.Success);
     }
 
     void ConfirmDelete(IReadOnlyList<MaterialRow> doomed) {
       using var dialog = new DeleteMaterialDialog(doomed);
       if (FindForm() is not { } owner || dialog.ShowOver(owner) != DialogResult.OK) return;
-      var at = doomed.Select(r => (Row: r, Index: rows.IndexOf(r))).ToList();
-      foreach (var r in doomed) rows.Remove(r);
-      Refill();
+      if (!TrySave(() => Inventory.Delete(doomed))) return;
+      materialGrid.ClearPicked();
+      Reload();
 
-      // Undo puts the rows back where they were.
-      var message = doomed.Count == 1 ? $"{doomed[0].Name} deleted" : $"{doomed.Count} materials deleted";
+      // The verb first: a long name is cut at the toast's edge.
+      var message = doomed.Count == 1 ? $"Deleted {doomed[0].Name}" : $"Deleted {doomed.Count} materials";
       toaster.Show(message, Tone.Success, "Undo", () => {
-        foreach (var (row, index) in at.OrderBy(a => a.Index)) rows.Insert(Math.Min(index, rows.Count), row);
-        Refill();
+        if (TrySave(() => Inventory.Restore(doomed))) Reload();
       });
+    }
+
+    bool TrySave(Action save) {
+      try {
+        save();
+        return true;
+      } catch (Exception ex) when (Data.Database.Failed(ex)) {
+        toaster.Show($"Nothing was changed. {ex.Message}", Tone.Danger);
+        return false;
+      }
     }
 
     List<MaterialRow> Picked() {
@@ -154,7 +182,8 @@ namespace Obille_Try.Pages {
           (query.Length == 0
               || r.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
               || r.Code.Contains(query, StringComparison.OrdinalIgnoreCase)
-              || r.Bin.Contains(query, StringComparison.OrdinalIgnoreCase)));
+              || r.Bin.Contains(query, StringComparison.OrdinalIgnoreCase)
+              || r.Supplier.Contains(query, StringComparison.OrdinalIgnoreCase)));
 
       shown = materialGrid.SortColumn switch {
         "Stock" => materialGrid.SortAscending ? shown.OrderBy(r => r.Stock) : shown.OrderByDescending(r => r.Stock),
@@ -174,10 +203,6 @@ namespace Obille_Try.Pages {
       var size = pagination.PageSize;
       materialGrid.ShowRows(list.Skip((pagination.Page - 1) * size).Take(size));
       pageHeader.Description = rows.Count == 1 ? "1 material in the Malolos yard" : $"{rows.Count} materials in the Malolos yard";
-    }
-
-    private void stockSelect_SelectedIndexChanged(object sender, EventArgs e) {
-
     }
   }
 }

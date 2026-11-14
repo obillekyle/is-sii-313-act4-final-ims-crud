@@ -156,7 +156,6 @@ namespace Obille_Try.Pages
             stockSelect.Name = "stockSelect";
             stockSelect.Size = new Size(150, 32);
             stockSelect.TabIndex = 1;
-            stockSelect.SelectedIndexChanged += stockSelect_SelectedIndexChanged;
             // 
             // supplierSelect
             // 

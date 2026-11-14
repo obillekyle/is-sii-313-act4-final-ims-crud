@@ -1,9 +1,12 @@
 namespace Obille_Try.Data {
   public sealed record MaterialRow(
       string Name, string Code, string Bin, int Stock, string Unit, decimal Cost, int ReorderPoint,
-      string Category, string Supplier) {
+      string Category, string Supplier, int ReorderQuantity = 0, int Id = 0) {
     // The warehouse reorders when stock falls to the reorder point.
     public bool IsLow => Stock <= ReorderPoint;
+
+    // The code, then the bin when there is one: "STL-0012, Steel rack 1".
+    public string Place => Bin.Length > 0 ? $"{Code}, {Bin}" : Code;
 
     // "712 lengths", "4 pails", "1,069 cu.m": a unit that is a word takes a
     // plural, an abbreviation does not.
@@ -11,9 +14,10 @@ namespace Obille_Try.Data {
         $"{n:N0} {(n == 1 || Unit is "cu.m" or "pc" or "kg" or "gal" or "m" or "bd.ft" ? Unit : Unit == "box" ? "boxes" : Unit + "s")}";
   }
 
-  // Fixed sample data for the prototype; nothing here is saved. The five
-  // stock figures the materials sketch draws are kept as drawn. The dashboard's figures
-  // are worked out from these rows, so the card and the list it opens agree.
+  // Fixed sample data. Materials is what the Materials table starts with
+  // (Inventory.EnsureTable); the five stock figures the materials sketch
+  // draws are kept as drawn. The weekly flows and the tools figures belong
+  // to screens the sketches do not draw, so they stay fixed.
   public static class SampleData {
     public const int PageSize = 25;
 
@@ -144,14 +148,12 @@ namespace Obille_Try.Data {
             438_200f, 366_700f, 301_500f, 487_900f, 532_400f, 498_100f, 286_400f, 541_800f, 723_600f, 512_200f, 842_600f,
         };
 
-    public static decimal StockValue => Materials.Sum(m => m.Stock * m.Cost);
-
-    // Stock value at the end of each week, worked back from today's: a
-    // week ends at the next week's end, less what came in that next week,
-    // plus what went out.
-    public static float[] StockValueByWeek() {
+    // Stock value at the end of each week, worked back from today's (the
+    // table's): a week ends at the next week's end, less what came in that
+    // next week, plus what went out.
+    public static float[] StockValueByWeek(IEnumerable<MaterialRow> materials) {
       var values = new float[Received.Length];
-      var v = (float)StockValue;
+      var v = (float)materials.Sum(m => m.Stock * m.Cost);
       for (var w = values.Length - 1; w >= 0; w--) {
         values[w] = v;
         v = v - Received[w] + Issued[w];

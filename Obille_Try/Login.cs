@@ -1,4 +1,3 @@
-using System.Data.OleDb;
 using Kit;
 using Obille_Try.Data;
 
@@ -34,7 +33,7 @@ namespace Obille_Try {
       Cursor = Cursors.WaitCursor;
       try {
         (status, account) = Accounts.SignIn(username, password);
-      } catch (Exception ex) when (ex is OleDbException or InvalidOperationException) {
+      } catch (Exception ex) when (Data.Database.Failed(ex)) {
         // InvalidOperationException is the provider missing: the Access
         // database engine is not installed, or not at the app's bitness.
         ShowProblem(Tone.Danger, "The accounts database did not open", ex.Message);

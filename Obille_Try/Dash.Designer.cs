@@ -36,6 +36,7 @@
             dashboardPage = new Obille_Try.Pages.DashboardPage();
             materialsPage = new Obille_Try.Pages.MaterialsPage();
             placeholderPage = new Obille_Try.Pages.PlaceholderPage();
+            usersPage = new Obille_Try.Pages.UsersPage();
             header = new Obille_Try.UI.BorderPanel();
             breadcrumbs = new Kit.Breadcrumbs();
             locationSelect = new Kit.Select();
@@ -62,6 +63,7 @@
             sidebar.Items.Add(new Kit.NavItem("Material request", "clipboard-list", null, "requests"));
             sidebar.Items.Add(new Kit.NavItem("Purchasing", "shopping-cart", null, "purchasing"));
             sidebar.Items.Add(new Kit.NavItem("Deliveries", "truck", null, "deliveries"));
+            sidebar.Items.Add(new Kit.NavItem("Users", "users", null, "users"));
             sidebar.Location = new Point(0, 0);
             sidebar.Name = "sidebar";
             sidebar.PersonDetail = "Warehouse custodian";
@@ -69,7 +71,6 @@
             sidebar.Size = new Size(248, 780);
             sidebar.TabIndex = 0;
             sidebar.TabStop = false;
-            sidebar.SelectedIndexChanged += navList_SelectedIndexChanged;
             // 
             // main
             // 
@@ -86,6 +87,7 @@
             content.Controls.Add(dashboardPage);
             content.Controls.Add(materialsPage);
             content.Controls.Add(placeholderPage);
+            content.Controls.Add(usersPage);
             content.Dock = DockStyle.Fill;
             content.Location = new Point(0, 60);
             content.Name = "content";
@@ -101,7 +103,6 @@
             dashboardPage.Padding = new Padding(18, 4, 18, 12);
             dashboardPage.Size = new Size(1032, 720);
             dashboardPage.TabIndex = 0;
-            dashboardPage.Load += dashboardPage_Load;
             // 
             // materialsPage
             // 
@@ -122,6 +123,16 @@
             placeholderPage.Size = new Size(1032, 720);
             placeholderPage.TabIndex = 2;
             placeholderPage.Visible = false;
+            //
+            // usersPage
+            //
+            usersPage.Dock = DockStyle.Fill;
+            usersPage.Location = new Point(0, 0);
+            usersPage.Name = "usersPage";
+            usersPage.Padding = new Padding(18, 8, 18, 14);
+            usersPage.Size = new Size(1032, 720);
+            usersPage.TabIndex = 3;
+            usersPage.Visible = false;
             // 
             // header
             // 
@@ -225,6 +236,7 @@
         private Pages.DashboardPage dashboardPage;
         private Pages.MaterialsPage materialsPage;
         private Pages.PlaceholderPage placeholderPage;
+        private Pages.UsersPage usersPage;
         private UI.BorderPanel header;
         private Kit.Breadcrumbs breadcrumbs;
         private Kit.Select locationSelect;

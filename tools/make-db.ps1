@@ -1,6 +1,8 @@
-# Makes the IMS accounts database: an Access file with the Users table the
-# sign-in and register forms read and write. Run from 64-bit PowerShell
-# (the ACE 16.0 provider here is 64-bit). Refuses to overwrite a file.
+# Makes an empty IMS database: an Access file with the Users table the
+# sign-in, register and Users screens read and write. The app adds the
+# Materials table, with its 59 sample rows, the first time it opens the
+# file. Run from 64-bit PowerShell (the ACE 16.0 provider here is 64-bit).
+# Refuses to overwrite a file.
 param([Parameter(Mandatory)][string]$Out)
 
 if (Test-Path $Out) { Write-Host "exists, left alone: $Out"; exit 1 }

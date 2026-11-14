@@ -1,7 +1,7 @@
 ﻿using Kit;
 
 namespace Obille_Try {
-  // The main window. Ctrl+1 to Ctrl+6 open the pages in the navigation's
+  // The main window. Ctrl+1 to Ctrl+7 open the pages in the navigation's
   // order, Ctrl+N a new material, Ctrl+F the search.
   public partial class Dash : Form {
     sealed record PageInfo(string Key, string Title, string Icon);
@@ -40,6 +40,21 @@ namespace Obille_Try {
       dashboardPage.LowStockOpened += (_, _) => { Go("materials"); materialsPage.ShowLowStock(); };
       placeholderPage.DashboardRequested += (_, _) => Go("dashboard");
 
+      // A saved material changes the dashboard's figures and the low stock
+      // list under the bell. The event is static, so the window lets go of
+      // it when it closes and a sign-in after a sign out starts clean.
+      EventHandler stockChanged = (_, _) => {
+        dashboardPage.Reload();
+        bellButton.DropDown = BellMenu();
+      };
+      Data.Inventory.Changed += stockChanged;
+      FormClosed += (_, _) => Data.Inventory.Changed -= stockChanged;
+      usersPage.CurrentAccountChanged += (_, _) => {
+        if (Data.Accounts.Current is not { } me) return;
+        sidebar.PersonName = me.FullName;
+        sidebar.PersonDetail = me.Role;
+      };
+
       Go("dashboard");
     }
 
@@ -67,7 +82,8 @@ namespace Obille_Try {
         case Keys.Control | Keys.F:
           FindMaterial();
           return true;
-        case var k when (k & Keys.Modifiers) == Keys.Control && (k & Keys.KeyCode) is >= Keys.D1 and <= Keys.D6:
+        case var k when (k & Keys.Modifiers) == Keys.Control && (k & Keys.KeyCode) >= Keys.D1
+            && (k & Keys.KeyCode) < Keys.D1 + pages.Count:
           Go(pages[(int)(k & Keys.KeyCode) - (int)Keys.D1].Key);
           return true;
       }
@@ -87,6 +103,7 @@ namespace Obille_Try {
       var view = key switch {
         "dashboard" => (Control)dashboardPage,
         "materials" => materialsPage,
+        "users" => usersPage,
         _ => placeholderPage,
       };
       if (view == placeholderPage) placeholderPage.ShowFor(page.Title, page.Icon);
@@ -115,7 +132,12 @@ namespace Obille_Try {
 
     ContextMenuStrip BellMenu() {
       var menu = new ContextMenuStrip();
-      var low = Data.SampleData.Materials.Where(r => r.IsLow).ToList();
+      List<Data.MaterialRow> low;
+      try {
+        low = Data.Inventory.All().Where(r => r.IsLow).ToList();
+      } catch (Exception ex) when (Data.Database.Failed(ex)) {
+        low = new();
+      }
       var head = new ToolStripLabel($"{low.Count} low on stock at Malolos yard") {
         Font = KitTheme.Font(13, true),
         ForeColor = KitTheme.Palette.Ink2,
@@ -136,24 +158,12 @@ namespace Obille_Try {
       var px = LogicalToDeviceUnits(16);
       var about = new ToolStripMenuItem("About SS Construction Inventory", Icons.ToBitmap("info", px, ink));
       about.Click += (_, _) => MessageBox.Show(this,
-          "SS Construction Inventory, version 1.0.\nA prototype of the final term's Activity 1 sketches.",
+          "SS Construction Inventory, version 1.1.\nMaterials and user accounts are saved in an Access database.",
           "About SS Construction Inventory", MessageBoxButtons.OK, MessageBoxIcon.Information);
       var signOut = new ToolStripMenuItem("Sign out", Icons.ToBitmap("log-out", px, ink));
       signOut.Click += (_, _) => SignOut();
       menu.Items.AddRange(new ToolStripItem[] { about, new ToolStripSeparator(), signOut });
       return menu;
-    }
-
-    private void dashboardPage_Load(object sender, EventArgs e) {
-
-    }
-
-    private void navList_SelectedIndexChanged(object sender, EventArgs e) {
-
-    }
-
-    private void sideNav1_SelectedIndexChanged(object sender, EventArgs e) {
-
     }
   }
 }
